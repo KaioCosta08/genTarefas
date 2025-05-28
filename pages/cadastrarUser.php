@@ -34,7 +34,7 @@
             transform: translate(-50%, -50%);
             width: 100%;
             max-width: 550px;
-            height: 40vh;
+            height: 30vh;
             padding: 10px 20px;
             border-radius: 10px;
         }
@@ -76,7 +76,7 @@
                         <a class="nav-link" href="cadastrarTarefa.php">Cadastro Tarefa</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Gerenciador Tarefas</a>
+                        <a class="nav-link" href="gerenciadorTarefas.php">Gerenciador Tarefas</a>
                     </li>
                 </ul>
             </div>
@@ -108,7 +108,7 @@
 <!-- PHP levando os dados do cadastro de usuários para o banco de dados -->
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    require_once '../conexaoGenTarefa.php';
+    require_once 'conexaoGenTarefa.php';
 
     $nome = $_POST['nomeUsuario'] ?? '';
     $email = $_POST['emailUsuario'] ?? '';

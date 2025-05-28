@@ -33,7 +33,7 @@
             transform: translate(-50%, -50%);
             width: 100%;
             max-width: 550px;
-            height: 85vh;
+            height: 65vh;
             padding: 10px 20px;
             border-radius: 10px;
         }
@@ -76,7 +76,7 @@
                         <a class="nav-link" href="cadastrarTarefa.php">Cadastro Tarefa</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Gerenciador Tarefas</a>
+                        <a class="nav-link" href="gerenciadorTarefas.php">Gerenciador Tarefas</a>
                     </li>
                 </ul>
             </div>
@@ -89,9 +89,9 @@
         <!-- Input de nome -->
         <div class="mb-3">
             <input type="text" name="nomeTarefa" class="form-control" id="exampleFormControlInput1"
-                placeholder="Digite sua tarefa">
+                placeholder="Digite o nome da tarefa">
         </div>
-        <!-- Input de email -->
+        <!-- Input de setor -->
         <div class="mb-3">
             <input type="text" name="setorTarefa" class="form-control" id="exampleFormControlInput1"
                 placeholder="Setor da tarefa">
@@ -102,12 +102,12 @@
         </div>
         <div class="mb-3">
             <input type="date" name="dataTarefa" class="form-control" id="exampleFormControlInput1">
-        </div>
+        </div> 
         <select class="form-select" aria-label="Default select example">
             <option selected disabled>Selecione o usuário</option>
             <?php
 
-            require_once '../conexaoGenTarefa.php';
+            require_once 'conexaoGenTarefa.php';
 
             $sql = "SELECT nome FROM usuario";
             $stmt = $conn->prepare($sql);
@@ -119,7 +119,7 @@
             }
 
             ?>
-        </select>
+        </select><br>
 
         <!-- Seleção para colocar a opção de status da tarefa -->
         <select class="form-select" name="statusTarefa" aria-label="Default select example">
@@ -127,7 +127,7 @@
             <option value="afazer">A fazer</option>
             <option value="fazendo">Fazendo</option>
             <option value="pronto">Pronto</option>
-        </select>
+        </select> <br>
 
         <!-- Seleção para colocar a opção de prioridade da tarefa -->
         <select class="form-select"  name="prioridadeTarefa" aria-label="Default select example">
@@ -150,8 +150,9 @@
 <?php
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    require_once '../conexaoGenTarefa.php';
+    require_once 'conexaoGenTarefa.php';
 
+    $nomeTarefa = $_POST['nomeTarefa'];
     $descricaoTarefa = $_POST['descricaoTarefa'] ?? '';
     $setorTarefa = $_POST['setorTarefa'] ?? '';
     $dataTarefa = $_POST['dataTarefa'] ?? '';
@@ -159,14 +160,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $prioridadeTarefa = $_POST['prioridadeTarefa'] ?? '';
 
     
-    $sql = "INSERT INTO tarefa(descricaoTarefa, nomeSetor, dataCadastrado, statusTarefa, prioridadeTarefa) VALUES (:descricaoTarefa, :nomeSetor, :dataCadastrado, :statu, :prioridade)";
+    $sql = "INSERT INTO tarefa(nomeTarefa, descricaoTarefa, nomeSetor, dataTarefa, statusTarefa, prioridadeTarefa) VALUES (:nomeTarefa, :descricaoTarefa, :nomeSetor, :dataTarefa, :statusTarefa, :prioridadeTarefa)";
     $stmt = $conn->prepare($sql);
 
+    $stmt->bindParam(":nomeTarefa", $nomeTarefa);
     $stmt->bindParam(":descricaoTarefa", $descricaoTarefa);
     $stmt->bindParam(":nomeSetor", $setorTarefa);
-    $stmt->bindParam(":dataCadastrado", $dataTarefa);
-    $stmt->bindParam(":statu", $statusTarefa);
-    $stmt->bindParam(":prioridade", $prioridadeTarefa);
+    $stmt->bindParam(":dataTarefa", $dataTarefa);
+    $stmt->bindParam(":statusTarefa", $statusTarefa);
+    $stmt->bindParam(":prioridadeTarefa", $prioridadeTarefa);
 
     if($stmt->execute()) {
         echo "<script>alert('Tarefa cadastrada com sucesso!')</script>";
@@ -174,5 +176,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "<script>alert('Desculpe, essa tarefa não foi cadastrada!')";
     }
 }
-
 ?>
