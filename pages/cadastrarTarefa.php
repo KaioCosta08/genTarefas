@@ -55,6 +55,12 @@
             color: #fff;
             transition: 1s;
         }
+
+        @media  (max-width: 1820px) {
+             #form-registe-user{
+                height: 80vh;
+             }
+        }
     </style>
 </head>
 
