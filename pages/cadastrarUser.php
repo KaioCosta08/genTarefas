@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->bindParam(":email", $email);
 
     if ($stmt->execute()) {
-        echo "<script>alert('Dados cadastrados com sucesso!')</script>";
+        echo "<script>alert('Dados cadastrados com sucesso!'); window.location.href = 'cadastrarTarefa.php'; </script>";
     } else {
         echo "<script>alert('Ocorreu um erro no envio dos dados')</script>";
     }

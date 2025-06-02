@@ -19,7 +19,10 @@
         }
 
         .box-tarefa-ferramentas {
+            width: 200px;
             margin-top: 15px;
+            display: flex;
+            gap: 25px;
         }
     </style>
 </head>
@@ -46,10 +49,45 @@
 <?php
 require_once "conexaoGenTarefa.php";
 
-$sql = "SELECT id_tarefa, nomeTarefa, descricaoTarefa, nomeSetor, statusTarefa, dataTarefa, prioridadeTarefa FROM tarefa ORDER BY id_tarefa DESC";
+// $sql = "SELECT id_tarefa, nomeTarefa, descricaoTarefa, nomeSetor, statusTarefa, dataTarefa, prioridadeTarefa FROM tarefa ORDER BY id_tarefa DESC";
+$sql = "SELECT 
+    tarefa.id_tarefa, 
+    tarefa.nomeTarefa,
+    tarefa.descricaoTarefa,
+    tarefa.nomeSetor,
+    tarefa.dataTarefa,
+    usuario.nome,
+    tarefa.statusTarefa,
+    tarefa.prioridadeTarefa,
+    tarefa.id_usuario
+    FROM 
+    tarefa
+    JOIN 
+    usuario 
+    ON 
+    tarefa.id_usuario = usuario.id_usuario;";
 $stmt = $conn->prepare($sql);
 $stmt->execute();
 $dados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+if($_SERVER['REQUEST_METHOD'] == 'POST') {
+    
+    if(isset($_POST['id_tarefa'])) {
+        $id = intval($_POST['id_tarefa']);
+
+        $sql = "DELETE FROM tarefa  WHERE id_tarefa = :id_tarefa";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':id_tarefa', $id, PDO::PARAM_INT);
+
+        if($stmt->execute()) {
+            echo '<script>alert("Essa tarefa foi apagada com sucesso!"); window.location.href = "gerenciadorTarefas.php"</script>';
+        } else {
+            echo '<script>alert("Erro ao apagar a tarefa.")</script>';
+        }
+    }
+}
+
 
 foreach ($dados as $dado) {
     echo "<div class='box-tarefa'>";
@@ -61,6 +99,7 @@ foreach ($dados as $dado) {
     echo "<p><strong>Descrição:</strong> " . htmlspecialchars($dado['descricaoTarefa']) . "</p>";
     echo "<p><strong>Setor:</strong> " . htmlspecialchars($dado['nomeSetor']) . "</p>";
     echo "<p><strong>Data:</strong> " . htmlspecialchars($dado['dataTarefa']) . "</p>";
+    echo "<p><strong>Nome do usuário:</strong> " . htmlspecialchars($dado['nome']) . "</p>";
     echo "<p><strong>Prioridade:</strong> " . htmlspecialchars($dado['prioridadeTarefa']) . "</p>";
     echo "</div>";
 
@@ -78,11 +117,17 @@ foreach ($dados as $dado) {
         data-descricao='" . htmlspecialchars($dado['descricaoTarefa']) . "'
         data-setor='" . htmlspecialchars($dado['nomeSetor']) . "'
         data-data='{$dado['dataTarefa']}'
+        data-id_usuario='{$dado['id_usuario']}'
         data-status='{$dado['statusTarefa']}'
         data-prioridade='{$dado['prioridadeTarefa']}'
     >Editar</button>";
 
-    echo "<button type='button' class='btn btn-danger'>Excluir</button>";
+    echo "<form method='POST' onsubmit='confirm(\"Quer mesmo excluir essa tarefa?\");'>";
+    echo "<input type='hidden' name='id_tarefa' value='{$dado['id_tarefa']}'>";
+    echo "<button type='submit' class='btn btn-danger'>Excluir</button>";
+
+    echo "</form>";
+
     echo "</div></div>";
 }
 ?>
@@ -117,6 +162,25 @@ foreach ($dados as $dado) {
                     <div class="mb-3">
                         <textarea class="form-control" name="descricaoTarefa" id="inputDescricaoTarefa" rows="3" placeholder="Descrição da tarefa"></textarea>
                     </div>
+                    
+                    <select id="inputUsuario" class="form-select" name="id_usuario" aria-label="Default select example">
+                    <option selected disabled>Selecione o usuário</option>
+                    <?php
+
+                    require_once 'conexaoGenTarefa.php';
+
+                    $sql = "SELECT id_usuario, nome FROM usuario";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute();
+                    $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    foreach ($usuarios as $usuario) {
+                        echo "<option value='{$usuario['id_usuario']}'> {$usuario['nome']} </option> ";
+                    }
+
+                    ?>
+                    </select><br>
+
                     <select class="form-select" name="statusTarefa" id="inputStatusTarefa">
                         <option disabled selected>Selecione o status</option>
                         <option value="A fazer">A fazer</option>
@@ -148,6 +212,7 @@ document.querySelectorAll('.btn-editar').forEach(button => {
         document.getElementById('inputSetorTarefa').value = button.dataset.setor;
         document.getElementById('inputDataTarefa').value = button.dataset.data;
         document.getElementById('inputDescricaoTarefa').value = button.dataset.descricao;
+        document.getElementById('inputUsuario').value = button.dataset.id_usuario;  
         document.getElementById('inputStatusTarefa').value = button.dataset.status;
         document.getElementById('inputPrioridadeTarefa').value = button.dataset.prioridade;
     });
@@ -171,22 +236,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $dataTarefa = $_POST['dataTarefa'] ?? '';
     $statusTarefa = $_POST['statusTarefa'] ?? '';
     $prioridadeTarefa = $_POST['prioridadeTarefa'] ?? '';
+    $idUsuario = $_POST['id_usuario'] ?? '';
 
-    $sql = "UPDATE tarefa SET nomeTarefa = :nomeTarefa, descricaoTarefa = :descricaoTarefa, nomeSetor = :nomeSetor, dataTarefa = :dataTarefa, statusTarefa = :statusTarefa, prioridadeTarefa = :prioridadeTarefa WHERE id_tarefa = :id_tarefa";
-    $stmt = $conn->prepare($sql);
+    $sql = "UPDATE tarefa SET nomeTarefa = :nomeTarefa, descricaoTarefa = :descricaoTarefa, nomeSetor = :nomeSetor, dataTarefa = :dataTarefa, id_usuario = :id_usuario ,statusTarefa = :statusTarefa, prioridadeTarefa = :prioridadeTarefa WHERE id_tarefa = :id_tarefa";
+    $stmt1 = $conn->prepare($sql);
 
-    $stmt->bindParam(":id_tarefa", $idTarefa);
-    $stmt->bindParam(":nomeTarefa", $nomeTarefa);
-    $stmt->bindParam(":descricaoTarefa", $descricaoTarefa);
-    $stmt->bindParam(":nomeSetor", $setorTarefa);
-    $stmt->bindParam(":dataTarefa", $dataTarefa);
-    $stmt->bindParam(":statusTarefa", $statusTarefa);
-    $stmt->bindParam(":prioridadeTarefa", $prioridadeTarefa);
+    $stmt1->bindParam(":id_tarefa", $idTarefa);
+    $stmt1->bindParam(":nomeTarefa", $nomeTarefa);
+    $stmt1->bindParam(":descricaoTarefa", $descricaoTarefa);
+    $stmt1->bindParam(":nomeSetor", $setorTarefa);
+    $stmt1->bindParam(":dataTarefa", $dataTarefa);
+    $stmt1->bindParam(":id_usuario", $idUsuario);
+    $stmt1->bindParam(":statusTarefa", $statusTarefa);
+    $stmt1->bindParam(":prioridadeTarefa", $prioridadeTarefa);
 
-    if ($stmt->execute()) {
-        echo "<script>alert('Tarefa editada com sucesso!'); window.location.href='gerenciadorTarefas.php';</script>";
+    if ($stmt1->execute()) {
+        echo "<script>alert('Tarefa editada com sucesso!'); window.location.href = 'gerenciadorTarefas.php';</script>";
     } else {
         echo "<script>alert('Erro ao editar tarefa.');</script>";
     }
 }
+?>
+
+<?php
+
+
 ?>

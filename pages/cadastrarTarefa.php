@@ -109,19 +109,19 @@
         <div class="mb-3">
             <input type="date" name="dataTarefa" class="form-control" id="exampleFormControlInput1">
         </div> 
-        <select class="form-select" aria-label="Default select example">
+        <select class="form-select" name="id_usuario" aria-label="Default select example">
             <option selected disabled>Selecione o usuário</option>
             <?php
 
             require_once 'conexaoGenTarefa.php';
 
-            $sql = "SELECT nome FROM usuario";
+            $sql = "SELECT id_usuario, nome FROM usuario";
             $stmt = $conn->prepare($sql);
             $stmt->execute();
             $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($usuarios as $usuario) {
-                echo "<option value='{$usuario['nome']}'> {$usuario['nome']} </option> ";
+                echo "<option value='{$usuario['id_usuario']}'> {$usuario['nome']} </option> ";
             }
 
             ?>
@@ -164,17 +164,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $dataTarefa = $_POST['dataTarefa'] ?? '';
     $statusTarefa = $_POST['statusTarefa'] ?? '';
     $prioridadeTarefa = $_POST['prioridadeTarefa'] ?? '';
+    $id_usuario = $_POST['id_usuario'] ?? null;
 
-    
-    $sql = "INSERT INTO tarefa(nomeTarefa, descricaoTarefa, nomeSetor, dataTarefa, statusTarefa, prioridadeTarefa) VALUES (:nomeTarefa, :descricaoTarefa, :nomeSetor, :dataTarefa, :statusTarefa, :prioridadeTarefa)";
+    $sql = "INSERT INTO tarefa(nomeTarefa, descricaoTarefa, nomeSetor, dataTarefa, id_usuario, statusTarefa, prioridadeTarefa) VALUES (:nomeTarefa, :descricaoTarefa, :nomeSetor, :dataTarefa, :id_usuario ,:statusTarefa, :prioridadeTarefa)";
     $stmt = $conn->prepare($sql);
 
     $stmt->bindParam(":nomeTarefa", $nomeTarefa);
     $stmt->bindParam(":descricaoTarefa", $descricaoTarefa);
     $stmt->bindParam(":nomeSetor", $setorTarefa);
     $stmt->bindParam(":dataTarefa", $dataTarefa);
+    $stmt->bindParam(':id_usuario', $id_usuario);
     $stmt->bindParam(":statusTarefa", $statusTarefa);
     $stmt->bindParam(":prioridadeTarefa", $prioridadeTarefa);
+
 
     if($stmt->execute()) {
         echo "<script>alert('Tarefa cadastrada com sucesso!')</script>";
